@@ -38,13 +38,16 @@ def test_get_course(client, course_factory):
     # Arrange
     courses = course_factory(_quantity=1)
 
+    temp_id = courses[Course.objects.count()-1].id
+    temp_url = '/api/v1/courses/' + f'{temp_id}' + '/'
+
     # Act
-    response = client.get('/api/v1/courses/')
+    response = client.get(temp_url)
 
     # Assert
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == len(courses)
+    assert temp_id == data['id']
 
 
 """
@@ -76,12 +79,18 @@ def test_get_courses(client, course_factory):
 
 
 @pytest.mark.django_db
-def test_create_course(client):
+def test_filter_by_id(client, course_factory):
     count = Course.objects.count()
+    courses = course_factory(_quantity=1, name='TestText')
+    temp_id = courses[count-1].id
+    temp_url = '/api/v1/courses/?id=' + f'{temp_id}'
 
-    response = client.post('/api/v1/courses/', data={'name': 'TestText'})
-    assert response.status_code == 201
-    assert Course.objects.count() == count + 1
+    # Act
+    response = client.get(temp_url)
+    data = response.json()
+    assert response.status_code == 200
+    for m in data:
+        assert m['id'] == temp_id
 
 
 """
@@ -93,7 +102,10 @@ def test_create_course(client):
 def test_filter_by_name(client):
 
     response = client.get('/api/v1/courses/?name=TestText')
+    data = response.json()
     assert response.status_code == 200
+    for m in data:
+        assert m['name'] == 'TestText'
 
 
 """
@@ -113,7 +125,7 @@ def test_create_json_course(client):
 
 """
 тест успешного обновления курса
-    сначала через фабрику создаем, потом обновляем JSON-данным
+    сначала через фабрику создаем, потом обновляем JSON-данным...
 """
 
 
